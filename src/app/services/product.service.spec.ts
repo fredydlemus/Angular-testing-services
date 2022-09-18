@@ -4,32 +4,53 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { CreateProductDTO, Product, UpdateProductDTO } from "../models/product.model";
 import { environment } from "../../environments/environment";
 import { generateManyProducts, generateOneProduct } from "../models/product.mock";
-import { HttpStatusCode } from "@angular/common/http";
+import { HttpStatusCode, HTTP_INTERCEPTORS } from "@angular/common/http";
+import { TokenInterceptor } from "../interceptors/token.interceptor";
+import { TokenService } from "./token.service";
 
-fdescribe('ProductsService', () => {
+describe('ProductsService', () => {
   let productService: ProductsService;
   let httpController: HttpTestingController;
+  let tokenService: jasmine.SpyObj<TokenService>;
 
   beforeEach(() => {
+
+    const spy = jasmine.createSpyObj('TokenService', ['getToken']);
+
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [ProductsService]
+      providers: [
+        ProductsService,
+        {
+          provide: TokenService,
+          useValue: spy
+        },
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: TokenInterceptor,
+          multi: true
+        }
+      ]
     })
     productService = TestBed.inject(ProductsService);
     httpController = TestBed.inject(HttpTestingController);
-  });
-
-  it('should be created', () => {
-    expect(productService).toBeTruthy();
+    tokenService = TestBed.inject(TokenService) as jasmine.SpyObj<TokenService>;
   });
 
   afterEach(() => {
     httpController.verify();
   });
 
+  it('should be created', () => {
+    expect(productService).toBeTruthy();
+  });
+
+
+
   describe('tests for getAllSimple', () => {
     it('should return a product list', (doneFn) => {
       const mockData: Product[] = generateManyProducts(3);
+      tokenService.getToken.and.returnValue('123');
       productService.getAllSimple()
         .subscribe((data) => {
           expect(data).toEqual(mockData);
@@ -38,6 +59,8 @@ fdescribe('ProductsService', () => {
 
       const url = `${environment.API_URL}/api/v1/products`;
       const req = httpController.expectOne(url);
+      const headers = req.request.headers;
+      expect(headers.get('Authorization')).toEqual('Bearer 123');
       req.flush(mockData);
 
 
@@ -228,5 +251,7 @@ fdescribe('ProductsService', () => {
       req.flush(msgError, mockError);
     });
   });
+
+
 
 });
