@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PicoPreviewComponent } from './pico-preview.component';
 
-describe('PicoPreviewComponent', () => {
+xdescribe('PicoPreviewComponent', () => {
   let component: PicoPreviewComponent;
   let fixture: ComponentFixture<PicoPreviewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PicoPreviewComponent ]
+      declarations: [PicoPreviewComponent]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {
